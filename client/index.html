@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>socket log</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+    <script>
+    </script>
+</head>
+<body>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    
+
+document.addEventListener('DOMContentLoaded', function () {
+    var socket;
+    var streaming = false;
+    var status = document.getElementById('status');
+    var sendingId = document.getElementById('sending-id');
+    var form = document.getElementById('enter');
+
+    socket = io();
+    socket.on('connect',function(evt){console.log("connect",evt)})
+    socket.on('oscillation', function(evt){console.log("oscillation",evt)})
+    socket.on('gesture',function(evt){console.log("gesture",evt)})
+    socket.on('+c',function(evt){console.log("+c",evt)})
+    socket.on('-c',function(evt){console.log("-c",evt)})
+});
+</script>
+</html>

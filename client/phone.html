@@ -1,0 +1,159 @@
+<html>
+  <head>
+    <title>Phone Motion Streamer</title>
+    <style>
+      body {
+        font-family: "Helvetica Neue", Helvetica;
+        padding:2em;
+        background: black
+      }
+      h1 {
+        font-weight:300;
+        text-align:center;
+        color:#888;
+      }
+      #status {
+        height:4em;
+        color:#555;
+        text-align:center;
+      }
+
+      input[type=text] {
+      }
+      input[type=submit] {
+      }
+      .hide {
+        display:none;
+      }
+
+      #konva{
+        position:fixed;
+        width:100%;
+        height: 100%;
+        top:0;
+        left: 0;
+        pointer-events: none;
+      }
+    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="minimal-ui,width=device-width, user-scalable=no">
+  </head>
+
+  <body>
+    <form id="enter">
+      <input type="text" id="sending-id" placeholder="Enter an ID for this measurement" autocorrect="off" autocapitalize="off">
+      <input type="submit" value="Start Streaming">
+    </form>
+    <div id="status"></div>
+    <div id="konva"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/renderer.js"></script>
+    <script src="/recognizer.js"></script>
+    <script src="/libs/konva.min.js"></script>
+    <script>
+    var variables={}
+
+
+    document.addEventListener('DOMContentLoaded', function(){
+      var socket;
+      var streaming = false;
+      var status = document.getElementById('status');
+      var sendingId = document.getElementById('sending-id');
+      var form = document.getElementById('enter');
+
+      var startStreaming = function () {
+        socket = io();//'https://192.168.11.3:8014'
+        socket.on('connect',function(){
+          streaming = true;
+          form.style.display='none';
+          status.className='csspinner line back-and-forth no-overlay';
+          status.style.display='block';
+          document.activeElement.blur();
+
+          recognizer.onOscillation(function(event){
+            console.log('oscillation',event);
+            socket.emit('oscillation',event);
+          });
+
+        })
+
+        return false;
+      };
+      form.addEventListener("submit",function(e){
+        e.preventDefault();
+        startStreaming(e);
+      });
+      // startStreaming();
+
+      var angleToMag=function(x){
+        // http://fooplot.com/
+        return  Math.abs(Math.abs((x-90)/180)%1-0.5)*60-15
+      }
+      var magToMag=function(val){
+        return val/2;
+      }
+
+
+      variables['orientation.x']={value:0,process:{},colour:"red",magnitudeFunction:angleToMag}
+      variables['orientation.y']={value:0,process:{},colour:"green",magnitudeFunction:angleToMag}
+      variables['orientation.z']={value:0,process:{},colour:"blue",magnitudeFunction:angleToMag}
+      variables['accel.x']={value:0,process:{},colour:"cyan",magnitudeFunction:magToMag}
+      variables['accel.y']={value:0,process:{},colour:"magenta",magnitudeFunction:magToMag}
+      variables['accel.z']={value:0,process:{},colour:"yellow",magnitudeFunction:magToMag}
+
+      recognizer.onOscillation(function(name,strength){
+        console.log('oscillation',{axis:name,strength:strength});
+        console.log("socket not yet connected");
+      });
+
+      var lastFrame=0;
+      function step(timestamp) {
+        var delta=timestamp-lastFrame;
+
+        // console.log(
+        //   Math.round(variables['orientation.z'].value),
+        //   variables['orientation.z'].magnitudeFunction(variables['orientation.z'].value)
+        // )
+        lastFrame=timestamp;
+        renderer.redraw(delta);
+        recognizer.frame(delta);
+        // console.log("step");
+        window.requestAnimationFrame(step);
+      }
+
+      window.requestAnimationFrame(step);
+
+      for(name in variables){
+        variables[name].name=name;
+        renderer.addVar(variables[name]);
+        recognizer.addVar(variables[name]);
+      }
+
+      if (window.DeviceMotionEvent !== undefined) {
+
+        window.ondevicemotion = function(e) {
+          variables['accel.x'].value= variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
+          variables['accel.y'].value= variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
+          variables['accel.z'].value= variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
+        };
+        window.ondeviceorientation = function(e) {
+
+          variables['orientation.x'].value=variables['orientation.x'].magnitudeFunction(e.alpha);
+          variables['orientation.y'].value=variables['orientation.y'].magnitudeFunction(e.beta);
+          variables['orientation.z'].value=variables['orientation.z'].magnitudeFunction(e.gamma);
+          //status.innerHTML = 'vars'+JSON.stringify(e);
+
+          //renderer.redraw();
+
+          //if (!streaming) return false;
+          //if(streaming)
+          //socket.emit('orientation', e);
+        };
+      } else {
+        status.style.display = 'block';
+        status.innerHTML = 'Unfortunately, this device does not have the right sensors.';
+      }
+    });
+    </script>
+  </body>
+</html>
