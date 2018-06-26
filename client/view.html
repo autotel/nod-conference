@@ -1,23 +1,34 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Emoticon server</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-    .emoticons-field{
-        position:fixed;
-        bottom:0px;
-    }
+        .emoticons-field {
+            position: fixed;
+            bottom: 0px;
+        }
+
+        .emoticons-field>div {
+            display: inline-block;
+            text-align: center;
+            font-family: helvetica;
+        }
+        .emoticons-field>div>p {
+            margin-top: 0px;
+        }
     </style>
 </head>
+
 <body>
-    
+
 </body>
 <script>
-//prevent module is not defined
-var module={}</script>
+    //prevent module is not defined
+    var module = {}</script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="view-EmoticonsRenderer.js"></script>
 <script>
@@ -31,15 +42,15 @@ var module={}</script>
         socket.on('update', function (data) {
             console.log('update', data);
             if (data.unique !== undefined) {
-                
-                if(data.name!==undefined){
+
+                if (data.name !== undefined) {
                     emoticons.setName(data.unique, data.name);
                 }
-                
-            }else{
-                console.warn("change data without unique",data);
+
+            } else {
+                console.warn("change data without unique", data);
             }
-        }); 
+        });
         socket.on('remove', function (data) {
             console.log('remove', data);
             emoticons.remove(data.unique);
@@ -55,4 +66,5 @@ var module={}</script>
         });
     });
 </script>
+
 </html>
