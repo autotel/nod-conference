@@ -1,1 +1,58 @@
-<hr>hi :)
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Emoticon server</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    .emoticons-field{
+        position:fixed;
+        bottom:0px;
+    }
+    </style>
+</head>
+<body>
+    
+</body>
+<script>
+//prevent module is not defined
+var module={}</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="view-EmoticonsRenderer.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("start");
+        socket = io();//'https://192.168.11.3:8014'
+        socket.on('connect', function () {
+            console.log("socket connect");
+            socket.emit('staterequest');
+        })
+        socket.on('update', function (data) {
+            console.log('update', data);
+            if (data.unique !== undefined) {
+                
+                if(data.name!==undefined){
+                    emoticons.setName(data.unique, data.name);
+                }
+                
+            }else{
+                console.warn("change data without unique",data);
+            }
+        }); 
+        socket.on('remove', function (data) {
+            console.log('remove', data);
+            emoticons.remove(data.unique);
+        });
+        socket.on('oscillation', function (data) {
+            if (data.unique !== undefined) {
+                console.log('oscillation', data);
+                if (data.gesture !== undefined) {
+                    console.log("emoticons.gesture", data.uniqe, data.gesture);
+                    emoticons.gesture(data.unique, data.gesture);
+                }
+            }
+        });
+    });
+</script>
+</html>

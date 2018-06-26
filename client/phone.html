@@ -1,120 +1,164 @@
 <html>
-  <head>
-    <title>Phone Motion Streamer</title>
-    <style>
-      body {
-        font-family: "Helvetica Neue", Helvetica;
-        padding:2em;
-        background: black
-      }
-      h1 {
-        font-weight:300;
-        text-align:center;
-        color:#888;
-      }
-      #status {
-        height:4em;
-        color:#555;
-        text-align:center;
-      }
 
-      input[type=text] {
-      }
-      input[type=submit] {
-      }
-      .hide {
-        display:none;
-      }
+<head>
+  <title>Phone Motion Streamer</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Helvetica;
+      padding: 2em;
+      background: black
+    }
 
-      #konva{
-        position:fixed;
-        width:100%;
-        height: 100%;
-        top:0;
-        left: 0;
-        pointer-events: none;
-      }
-    </style>
-    <meta charset="utf-8">
-    <meta name="viewport" content="minimal-ui,width=device-width, user-scalable=no">
-  </head>
+    h1 {
+      font-weight: 300;
+      text-align: center;
+      color: #888;
+    }
 
-  <body>
-    <form id="enter">
-      <input type="text" id="sending-id" placeholder="Enter an ID for this measurement" autocorrect="off" autocapitalize="off">
-      <input type="submit" value="Start Streaming">
-    </form>
-    <div id="status"></div>
-    <div id="konva"></div>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/renderer.js"></script>
-    <script src="/recognizer.js"></script>
-    <script src="/libs/konva.min.js"></script>
-    <script>
-    var variables={}
+    #status {
+      height: 4em;
+      color: #555;
+      text-align: center;
+    }
+
+    input[type=text] {}
+
+    input[type=submit] {}
+
+    .hide {
+      display: none;
+    }
+
+    #konva {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    .sensitivitySetter {
+      width: 50%;
+    }
+    .sensitivitySetter:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    #sliderfield {
+      color:#FFF;
+      position: fixed;
+      bottom: 0px;
+    }
+  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="minimal-ui,width=device-width, user-scalable=no">
+</head>
+
+<body>
+  <h1 id="my-name"></h1>
+  <form id="enter">
+    <input type="text" id="sending-id" placeholder="Enter an ID for this measurement" autocorrect="off" autocapitalize="off">
+    <input type="submit" value="set name">
+  </form>
+
+  <div id="sliderfield">
+     yes:
+    <input label="(yes)" disabled="disabled" type="range" min="1" max="600" value="0" class="sensitivitySetter" id="ysensdisplay">
+    <input label="yes" type="range" min="1" max="300" value="100" class="sensitivitySetter" id="ysensitivity">
+    no:
+    <input label="(yes)" disabled="disabled" type="range" min="1" max="600" value="0" class="sensitivitySetter" id="nsensdisplay">
+    <input label="yes" type="range" min="1" max="300" value="110" class="sensitivitySetter" id="nsensitivity">
+  </div>
+
+  <div id="status"></div>
+  <div id="konva"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/phone-renderer.js"></script>
+  <script src="/phone-recognizer.js"></script>
+  <script src="/libs/konva.min.js"></script>
+  <script>
+    var variables = {}
 
 
-    document.addEventListener('DOMContentLoaded', function(){
-      var socket;
+    document.addEventListener('DOMContentLoaded', function () {
+      var socket = false;
       var streaming = false;
       var status = document.getElementById('status');
       var sendingId = document.getElementById('sending-id');
       var form = document.getElementById('enter');
+      var ysensitivity=document.getElementById('ysensitivity');
+      var nsensitivity=document.getElementById('nsensitivity');
+      socket = io();
+      socket.on('connect', function () {
+        streaming = true;
+        recognizer.onOscillation(function (event) {
+          var ytresh = ysensitivity.value;
+          var ntresh = nsensitivity.value;
+          console.log('oscillation', event);
+          if (event.name == "orientation.y" && event.strength >= ytresh) {
+            event.gesture = "yes";
+          } else if (event.name == "orientation.y") {
+            document.getElementById("ysensdisplay").value = event.strength;
+          }
+          if (event.name == "orientation.z" && event.strength >= ntresh) {
+            event.gesture = "no";
+          } else if (event.name == "orientation.y") {
+            document.getElementById("nsensdisplay").value = event.strength;
+          }
+          socket.emit('oscillation', event);
+        });
+      })
+      var sendName = function (e) {
+        if (!socket) { console.error("socket is", socket); return false };
 
-      var startStreaming = function () {
-        socket = io();//'https://192.168.11.3:8014'
-        socket.on('connect',function(){
-          streaming = true;
-          form.style.display='none';
-          status.className='csspinner line back-and-forth no-overlay';
-          status.style.display='block';
-          document.activeElement.blur();
+        form.style.display = 'none';
+        status.className = 'csspinner line back-and-forth no-overlay';
+        status.style.display = 'block';
+        document.activeElement.blur();
 
-          recognizer.onOscillation(function(event){
-            console.log('oscillation',event);
-            socket.emit('oscillation',event);
-          });
-
-        })
-
+        socket.emit('update', { name: sendingId.value });
+        console.log(sendingId.value);
+        document.getElementById('my-name').innerHTML = sendingId.value;
         return false;
       };
-      form.addEventListener("submit",function(e){
+      form.addEventListener("submit", function (e) {
         e.preventDefault();
-        startStreaming(e);
+        sendName(e);
       });
       // startStreaming();
 
-      var angleToMag=function(x){
+      var angleToMag = function (x) {
         // http://fooplot.com/
-        return  Math.abs(Math.abs((x-90)/180)%1-0.5)*60-15
+        return Math.abs(Math.abs((x - 90) / 180) % 1 - 0.5) * 60 - 15
       }
-      var magToMag=function(val){
-        return val/2;
+      var magToMag = function (val) {
+        return val / 2;
       }
 
 
-      variables['orientation.x']={value:0,process:{},colour:"red",magnitudeFunction:angleToMag}
-      variables['orientation.y']={value:0,process:{},colour:"green",magnitudeFunction:angleToMag}
-      variables['orientation.z']={value:0,process:{},colour:"blue",magnitudeFunction:angleToMag}
-      variables['accel.x']={value:0,process:{},colour:"cyan",magnitudeFunction:magToMag}
-      variables['accel.y']={value:0,process:{},colour:"magenta",magnitudeFunction:magToMag}
-      variables['accel.z']={value:0,process:{},colour:"yellow",magnitudeFunction:magToMag}
+      variables['orientation.x'] = { value: 0, process: {}, colour: "red", magnitudeFunction: angleToMag }
+      variables['orientation.y'] = { value: 0, process: {}, colour: "green", magnitudeFunction: angleToMag }
+      variables['orientation.z'] = { value: 0, process: {}, colour: "blue", magnitudeFunction: angleToMag }
+      variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
+      variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
+      variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
 
-      recognizer.onOscillation(function(name,strength){
-        console.log('oscillation',{axis:name,strength:strength});
+      recognizer.onOscillation(function (name, strength) {
+        console.log('oscillation', { axis: name, strength: strength });
         console.log("socket not yet connected");
       });
 
-      var lastFrame=0;
+      var lastFrame = 0;
       function step(timestamp) {
-        var delta=timestamp-lastFrame;
+        var delta = timestamp - lastFrame;
 
         // console.log(
         //   Math.round(variables['orientation.z'].value),
         //   variables['orientation.z'].magnitudeFunction(variables['orientation.z'].value)
         // )
-        lastFrame=timestamp;
+        lastFrame = timestamp;
         renderer.redraw(delta);
         recognizer.frame(delta);
         // console.log("step");
@@ -123,24 +167,24 @@
 
       window.requestAnimationFrame(step);
 
-      for(name in variables){
-        variables[name].name=name;
+      for (name in variables) {
+        variables[name].name = name;
         renderer.addVar(variables[name]);
         recognizer.addVar(variables[name]);
       }
 
       if (window.DeviceMotionEvent !== undefined) {
 
-        window.ondevicemotion = function(e) {
-          variables['accel.x'].value= variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
-          variables['accel.y'].value= variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
-          variables['accel.z'].value= variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
+        window.ondevicemotion = function (e) {
+          variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
+          variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
+          variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
         };
-        window.ondeviceorientation = function(e) {
+        window.ondeviceorientation = function (e) {
 
-          variables['orientation.x'].value=variables['orientation.x'].magnitudeFunction(e.alpha);
-          variables['orientation.y'].value=variables['orientation.y'].magnitudeFunction(e.beta);
-          variables['orientation.z'].value=variables['orientation.z'].magnitudeFunction(e.gamma);
+          variables['orientation.x'].value = variables['orientation.x'].magnitudeFunction(e.alpha);
+          variables['orientation.y'].value = variables['orientation.y'].magnitudeFunction(e.beta);
+          variables['orientation.z'].value = variables['orientation.z'].magnitudeFunction(e.gamma);
           //status.innerHTML = 'vars'+JSON.stringify(e);
 
           //renderer.redraw();
@@ -154,6 +198,7 @@
         status.innerHTML = 'Unfortunately, this device does not have the right sensors.';
       }
     });
-    </script>
-  </body>
+  </script>
+</body>
+
 </html>

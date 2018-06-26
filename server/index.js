@@ -1,6 +1,7 @@
+var Binder = require('./Binder');
 
 const settings=require('../settings.js');
-const SocketClientMan=require('./SocketClientMan.js');
+// const SocketClientMan=require('./SocketClientMan.js');
 var path = require('path');
 'use strict';
 var onHandlers=require('onhandlers');
@@ -66,7 +67,8 @@ var ip = ips.filter(function(d) {
 })[0];
 
 
-console.info('To connect, open your mobile web browser and go to '+ip+':'+httpPort+'. Make sure the computer and phone are connected to the same network');
+console.info('view: https://' + ip + ':' + httpPort + '/phone.html . ');
+console.info('phone: https://'+ip+':'+httpPort+'/view.html . ');
 
 console.log("starting server");
 app.get('/', function(req, res){
@@ -102,33 +104,40 @@ var getStream = function (name, tp) {
 
 
 var phoneDetectorServer=new(function(){
-
-
-
-  var active=false;
-
-  var serverMan=this;
-  var self=this;
-
-  onHandlers.call(this);
   if(sockets){
-    socketClients=new SocketClientMan(this);
     sockets.on('connection', function(socket){
-      var client=socketClients.add(socket);
-      console.log("+ client (peripheral)")
-      self.handle('+ client',client)
-
-
+      var tracker=new Binder();
+      tracker.update({name:"unnamed"});
       socket.on('oscillation', function (data) {
-        console.log('oscillation',data);
-        self.handle("oscillation",data);
+        console.log('  >>oscillation',data);
+        data.unique=tracker.unique;
+        sockets.emit('oscillation',data);
       });
-      socket.on('gesture', function (data) {
-        console.log('gesture',data);
-        self.handle("gesture",data);
+      socket.on('update', function (data) {
+        console.log('<<update', data);
+        tracker.update(data);
+      });
+      socket.on('disconnect', function (data) {
+        console.log('<<disconnect', data);
+        Binder.remove(tracker);
+      });
+      socket.on('staterequest',function(){
+        console.log("view state request");
+        Binder.each(function(binder,index){
+          console.log("  >>login data:",binder.data());
+          socket.emit('update',binder.data());
+        });
+      });
+      // setInterval(function(){socket.emit('update',{mm:77})},200);
+      tracker.on('update', function (data) {
+        console.log("  >>update", data);
+        sockets.emit('update', data);
+      }); 
+      tracker.on('remove', function (data) {
+        console.log("  >>remove", data);
+        sockets.emit('remove', data);
       });
     });
-    active=true;
   }else{
     console.log("no peripheral server support");
   }
