@@ -16,6 +16,7 @@
     
 
 document.addEventListener('DOMContentLoaded', function () {
+    
     var socket;
     var streaming = false;
     var status = document.getElementById('status');
@@ -28,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
     socket.on('gesture',function(evt){console.log("gesture",evt)})
     socket.on('+c',function(evt){console.log("+c",evt)})
     socket.on('-c',function(evt){console.log("-c",evt)})
+
+    window.history.back();
 });
 </script>
 </html>
