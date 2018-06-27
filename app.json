@@ -1,0 +1,7 @@
+{
+  "name": "nod conference server+client",
+  "description": "basic nod conference",
+  "repository": "https://github.com/autotel/nod-conference",
+  "logo": "https://node-js-sample.herokuapp.com/node.png",
+  "keywords": []
+}
