@@ -11,7 +11,9 @@ var EmoticonsRenderer = function () {
         this.appended = false;
         var domEl = document.createElement('div');
         var domElImg = document.createElement('img');
+	var domEltxt = document.createElement('p');
         domEl.appendChild(domElImg);
+	domEl.appendChild(domEltxt);
         var domElName = document.createElement('p');
         domEl.appendChild(domElName);
         domElImg.src = "./res/dlc.bmp";
@@ -19,11 +21,17 @@ var EmoticonsRenderer = function () {
             emoticonsField.appendChild(domEl);
         }
         this.disappear = function () {
-            emoticonsField.removeChild(domEl);
+	    try{
+            	emoticonsField.removeChild(domEl);
+	    }catch(e){
+   		console.log("error removing node for emoticon with unique",self.unique);
+		console.log(e);
+	    }
         }
         var restoreTimeout = false;
         var currentGesture = "neutral";
         this.represent = function (value) {
+	    domEltxt.innerHTML=value;
             if (currentGesture !== value) {
                 domElImg.src = "./res/" + value + ".gif";
                 currentGesture = value
@@ -48,12 +56,12 @@ var EmoticonsRenderer = function () {
     }
     var self=this;
     this.add = function (a) {
-        console.log("EMOT", a);
+        console.log("+EMOT", a);
         if (!representations[a]) {
             representations[a] = new EmoticonRepresentation();
         }
         var emoticon = representations[a];
-        
+        emoticon.unique=a;
 
     }
     this.getOrAdd=function(a){
@@ -69,13 +77,14 @@ var EmoticonsRenderer = function () {
         emoticon.disappear();
     }
     this.setName = function (a, name) {
+	console.log("name",a);
         var emoticon = self.getOrAdd(a);
         if(name!=="undefined" && name!=="unnamed")  emoticon.appear();
-        emoticon.setName(name);
+        emoticon.setName(name+a);
         console.log("set name");
     }
     this.gesture = function (a, gesture) {
-        console.log("EMOT", a); 
+        console.log("G EMOT", a); 
         var emoticon = self.getOrAdd(a);
         emoticon.appear();
         emoticon.represent(gesture);

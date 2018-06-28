@@ -4,7 +4,7 @@ var settings={
     port:8080,
     keyFile:'./server/sslcert/server.key',
     certificateFile:'./server/sslcert/server.crt',
-    verbose:false,
+    verbose:false
   }
 }
 module.exports=settings;
