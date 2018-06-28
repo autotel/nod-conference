@@ -107,7 +107,7 @@
           } else if (event.name == "orientation.y") {
             document.getElementById("nsensdisplay").value = event.strength;
           }
-          socket.emit('oscillation', event);
+          // socket.emit('oscillation', event);
         });
       })
       var sendName = function (e) {

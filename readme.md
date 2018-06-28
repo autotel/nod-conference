@@ -1,3 +1,7 @@
+* gesture detection is not quite well. maybe the socket is having too much data? 
+* emoticons keep switching positions
+
+
 re-organization of the emoticon server
   this is to allow using phones instead of the i2c hardware in any network.
   the idea is that every client and detector connects to the same server.
