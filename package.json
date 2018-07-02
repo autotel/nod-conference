@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "recognizer-dev": "webpack --watch --mode development ./src/recognizer/recognizer.js --output ./client/phone-recognizer.js",
+    "recognizer-build": "webpack --mode production ./src/recognizer/recognizer.js --output ./client/phone-recognizer.js"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +15,9 @@
     "express": "^4.16.3",
     "onhandlers": "^1.1.1",
     "socket.io": "^2.1.1"
+  },
+  "devDependencies": {
+    "webpack": "^4.14.0",
+    "webpack-cli": "^3.0.8"
   }
 }

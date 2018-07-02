@@ -1,0 +1,1 @@
+recognizer is the script that recognizes oscillations on variables, used in the phone to recognize oscillating movement.

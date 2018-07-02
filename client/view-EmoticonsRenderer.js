@@ -1,9 +1,30 @@
 
 var EmoticonsRenderer = function () {
+
     var emoticonsField = document.createElement('div');
     emoticonsField.classList.add('emoticons-field');
     var body = document.getElementsByTagName("BODY")[0];
     body.appendChild(emoticonsField);
+
+    // document.addEventListener('DOMContentLoaded',function () {
+        console.log("load");
+        
+        var preload = [
+            "./res/dlc.bmp",
+            "./res/neutral.gif",
+            "./res/no.gif",
+            "./res/yes.gif"
+        ]
+
+        for (res of preload) {
+            console.log(res);
+            var domElImg = document.createElement('img');            
+            domElImg.src=res;
+            domElImg.style="display:none"
+            body.appendChild(domElImg);
+            // images[i] = $preload.src=res;
+        }
+    // });
 
     var representations = {}
     var EmoticonRepresentation = function () {
@@ -11,9 +32,9 @@ var EmoticonsRenderer = function () {
         this.appended = false;
         var domEl = document.createElement('div');
         var domElImg = document.createElement('img');
-	var domEltxt = document.createElement('p');
+        var domEltxt = document.createElement('p');
         domEl.appendChild(domElImg);
-	domEl.appendChild(domEltxt);
+        domEl.appendChild(domEltxt);
         var domElName = document.createElement('p');
         domEl.appendChild(domElName);
         domElImg.src = "./res/dlc.bmp";
@@ -21,17 +42,17 @@ var EmoticonsRenderer = function () {
             emoticonsField.appendChild(domEl);
         }
         this.disappear = function () {
-	    try{
-            	emoticonsField.removeChild(domEl);
-	    }catch(e){
-   		console.log("error removing node for emoticon with unique",self.unique);
-		console.log(e);
-	    }
+            try {
+                emoticonsField.removeChild(domEl);
+            } catch (e) {
+                console.log("error removing node for emoticon with unique", self.unique);
+                console.log(e);
+            }
         }
         var restoreTimeout = false;
         var currentGesture = "neutral";
         this.represent = function (value) {
-	    domEltxt.innerHTML=value;
+            domEltxt.innerHTML = value;
             if (currentGesture !== value) {
                 domElImg.src = "./res/" + value + ".gif";
                 currentGesture = value
@@ -54,18 +75,18 @@ var EmoticonsRenderer = function () {
             domElName.innerHTML = name;
         }
     }
-    var self=this;
+    var self = this;
     this.add = function (a) {
         console.log("+EMOT", a);
         if (!representations[a]) {
             representations[a] = new EmoticonRepresentation();
         }
         var emoticon = representations[a];
-        emoticon.unique=a;
+        emoticon.unique = a;
 
     }
-    this.getOrAdd=function(a){
-        if(representations[a]===undefined){
+    this.getOrAdd = function (a) {
+        if (representations[a] === undefined) {
             self.add(a);
         }
         return representations[a];
@@ -77,14 +98,14 @@ var EmoticonsRenderer = function () {
         emoticon.disappear();
     }
     this.setName = function (a, name) {
-	console.log("name",a);
+        console.log("name", a);
         var emoticon = self.getOrAdd(a);
-        if(name!=="undefined" && name!=="unnamed")  emoticon.appear();
-        emoticon.setName(name+a);
+        if (name !== "undefined" && name !== "unnamed") emoticon.appear();
+        emoticon.setName(name + a);
         console.log("set name");
     }
     this.gesture = function (a, gesture) {
-        console.log("G EMOT", a); 
+        console.log("G EMOT", a);
         var emoticon = self.getOrAdd(a);
         emoticon.appear();
         emoticon.represent(gesture);

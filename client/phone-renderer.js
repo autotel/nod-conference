@@ -37,10 +37,24 @@ var renderer=new(function(){
 
 
     for(var axisn in itarr){
+
       var cartesianDirection={x:Math.sin(Math.PI*2*axisn/amt),y:Math.cos(Math.PI*2*axisn/amt)};
-      // console.log("MM");
       var axis=itarr[axisn];
-      // console.log(axis);
+
+      if (!axis.representationText) {
+        var simpleText = new Konva.Text({
+          x: center.x,
+          y: center.y,
+          text: "--------------------" + axis.name,
+          fontSize: 10,
+          fill: axis.colour,
+          rotation: (-axisn / amt) * 360 + 90
+        });
+        axis.representationText=simpleText;
+
+        layer.add(simpleText)
+      }
+      
       if(!axis.representation){
         axis.representation=new Konva.Circle({
           x: center.x,
@@ -49,21 +63,11 @@ var renderer=new(function(){
           fill: axis.colour
         });
         layer.add(axis.representation);
-        var simpleText = new Konva.Text({
-          x: center.x,
-          y: center.y,
-          text: "--------------------"+axis.name,
-          fontSize: 10,
-          fill: axis.colour,
-          rotation:(-axisn/amt)*360+90
-        });
-        layer.add(simpleText)
+        
       }
-      // console.log("AX",axis.value);
-
       axis.representation.setX(cartesianDirection.x*(axis.value*60)+center.x);
       axis.representation.setY(cartesianDirection.y*(axis.value*60)+center.y);
-      //
+      
       for(var a in axis.process){
         var process=axis.process[a];
         if(!process.representation){

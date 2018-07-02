@@ -1,5 +1,9 @@
 * gesture detection is not quite well. maybe the socket is having too much data? 
+  * actually is a display problem (loading of gifs too slow?)
+* would be good to have some feedback about the oscillation to gesture relation, and being able to adjust sensitivity.
 * emoticons keep switching positions
+* get imus aswell
+* fix emoticon thing first
 
 
 re-organization of the emoticon server
