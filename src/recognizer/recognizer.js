@@ -7,31 +7,32 @@ var recognizer = new (function () {
     var self = this;
     this.value = myVar.value;
     this.name = myVar.name;
-    this.freq = 2000;
+    this.freq = 0.5;
     var olderFramesDurations = [];
     this.frame = function (timeDelta) {
-
-      var freqm1 = 0;
+      
+      var timespan=1000/self.freq;
+      var timespanM1 = 0;
       var removeLast = 0;
       for (var n in olderFramesDurations) {
         // console.log("it",n);
         var sampleTime = olderFramesDurations[n];
-        var pre = freqm1 + sampleTime;
-        if (pre+timeDelta >= self.freq) {
-          // console.log(pre," >= ",self.freq)
+        var pre = timespanM1 + sampleTime;
+        if (pre + timeDelta >= timespan) {
+          // console.log(pre," >= ",timespan)
           removeLast = n - olderFramesDurations.length;
         } else {
-          freqm1 = pre;
+          timespanM1 = pre;
         }
       }
       if (removeLast < 0) olderFramesDurations.splice(removeLast);
 
-      var effectiveFreq = freqm1 + timeDelta;
-      console.log("ffq", effectiveFreq);
+      var effectiveFreq = timespanM1 + timeDelta;
+      // console.log("ffq", effectiveFreq);
 
       var marginal = myVar.value * timeDelta;
-      var main = self.value * freqm1;
-      // if(freqm1<0){
+      var main = self.value * timespanM1;
+      // if(timespanM1<0){
       //   console.error("LPF frequency ("+self.freq+") is less than a sample frame duration ("+timeDelta+")");
       //   return;
       // }
@@ -45,12 +46,13 @@ var recognizer = new (function () {
     this.value = myVar.value;
     this.name = myVar.name;
 
-    // this.freq = 20;
+    this.freq = 10;
     var lowPass = new LowPass(myVar);
-    lowPass.freq = 70;
+    // lowPass.freq = 2;
     this.lowPass = lowPass;
-    console.log("HIPASS", this);
+    // console.log("HIPASS", this);
     this.frame = function (timeDelta) {
+      if(lowPass.freq!=self.freq) lowPass.freq=self.freq;
       lowPass.frame(timeDelta);
       self.value = myVar.value - lowPass.value;
     }
@@ -80,20 +82,31 @@ var recognizer = new (function () {
     var throtledCallback = throtling(callback, 800);
     this.value = 0;
     //how many seconds three zero crossings need to take to be considered as oscillation
-    this.freq = 800;
+    this.period = 1100;
     this.name = myVar.name;
     var zeroCrosses = [];
+    
+
+    var lowCutFq=5;
+    var hiCutFq=6;
 
     var hiPass = new HiPass(myVar);
-    myVar.process.hiPass = hiPass;
+    var loPass = new LowPass(hiPass);
 
-    this.zerox = new OnZeroCross(hiPass, function (strength) {
-      if (Math.abs(strength) > 4) {
+    hiPass.freq = lowCutFq;
+    loPass.freq=hiCutFq;
+    
+    myVar.process.hiPass = hiPass;
+    myVar.process.loPass = loPass;
+    
+    this.zerox = myVar.process.xx = new OnZeroCross(loPass, function (strength) {
+      // if (Math.abs(strength) > self.treshold) {
         // console.log("ZEROX",strength);
         zeroCrosses.unshift({ time: 0, strength: strength });
         // console.log(zeroCrosses);
-      }
+      // }
     });
+
     this.frame = function (timeDelta) {
       self.zerox.frame(timeDelta);
       if (zeroCrosses[0] == undefined) return false;
@@ -106,7 +119,7 @@ var recognizer = new (function () {
       for (var i in zeroCrosses) {
         tAmt += zeroCrosses[i].time;
         slopeAvg += zeroCrosses[i].strength / zeroCrosses.length;
-        if (tAmt > self.freq) {
+        if (tAmt > self.period) {
           damt += 1;
         } else {
           totalTime += zeroCrosses[i].time;
@@ -117,13 +130,13 @@ var recognizer = new (function () {
       if (damt > 0) zeroCrosses.splice(-damt);
       if (zeroCrosses.length > 2) {
         self.value = slopeAvg * zeroCrosses.length;
-        var frequency = zeroCrosses.length / totalTime;
+        var frequency = zeroCrosses.length/(totalTime/1000);
         throtledCallback({
           name: myVar.name,
           strength: self.value,
           oscillations: zeroCrosses.length,
-          slopeAverage: slopeAvg,
-          frequency: frequency
+          // slopeAverage: slopeAvg,
+          // frequency: frequency
         });
       }
     }

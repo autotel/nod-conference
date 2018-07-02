@@ -64,13 +64,6 @@
     <input type="submit" value="set name">
   </form>
 
-  <div id="sliderfield">
-    yes:
-    <input label="(yes)" disabled="disabled" type="range" min="1" max="600" value="0" class="sensitivitySetter" id="ysensdisplay">
-    <input label="yes" type="range" min="1" max="300" value="100" class="sensitivitySetter" id="ysensitivity"> no:
-    <input label="(yes)" disabled="disabled" type="range" min="1" max="600" value="0" class="sensitivitySetter" id="nsensdisplay">
-    <input label="yes" type="range" min="1" max="300" value="110" class="sensitivitySetter" id="nsensitivity">
-  </div>
 
   <div id="status"></div>
   <div id="konva"></div>
@@ -79,6 +72,8 @@
   <script src="/phone-recognizer.js"></script>
   <script src="/libs/konva.min.js"></script>
   <script>
+    var devMode = true;
+
     var variables = {}
     document.addEventListener('DOMContentLoaded', function () {
       var socket = false;
@@ -86,26 +81,18 @@
       var status = document.getElementById('status');
       var sendingId = document.getElementById('sending-id');
       var form = document.getElementById('enter');
-      var ysensitivity = document.getElementById('ysensitivity');
-      var nsensitivity = document.getElementById('nsensitivity');
       socket = io();
       socket.on('connect', function () {
         streaming = true;
         recognizer.onOscillation(function (event) {
-          var ytresh = ysensitivity.value;
-          var ntresh = nsensitivity.value;
-          console.log('oscillation', event);
-          if (event.name == "orientation.y" && event.strength >= ytresh) {
+          if (event.name == "orientation.y") {
             event.gesture = "yes";
-          } else if (event.name == "orientation.y") {
-            document.getElementById("ysensdisplay").value = event.strength;
           }
-          if (event.name == "orientation.z" && event.strength >= ntresh) {
+          if (event.name == "orientation.x") {
             event.gesture = "no";
-          } else if (event.name == "orientation.y") {
-            document.getElementById("nsensdisplay").value = event.strength;
           }
-
+          
+          if (devMode) console.log('oscillation', event);
           if (event.gesture !== undefined) {
             socket.emit('oscillation', event);
           }
@@ -120,7 +107,7 @@
         document.activeElement.blur();
 
         socket.emit('update', { name: sendingId.value });
-        console.log(sendingId.value);
+        if (devMode) console.log(sendingId.value);
         document.getElementById('my-name').innerHTML = sendingId.value;
         return false;
       };
@@ -139,13 +126,15 @@
       }
 
 
-      // variables['orientation.x'] = { value: 0, process: {}, colour: "red", magnitudeFunction: angleToMag }
-      // variables['orientation.y'] = { value: 0, process: {}, colour: "green", magnitudeFunction: angleToMag }
-      // variables['orientation.z'] = { value: 0, process: {}, colour: "blue", magnitudeFunction: angleToMag }
+      variables['orientation.x'] = { value: 0, process: {}, colour: "red", magnitudeFunction: angleToMag }
+      variables['orientation.y'] = { value: 0, process: {}, colour: "green", magnitudeFunction: angleToMag }
+      variables['orientation.z'] = { value: 0, process: {}, colour: "blue", magnitudeFunction: angleToMag }
+      
       // variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
       // variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
       // variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
-      variables['oscillator'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
+      
+      // variables['oscillator'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
 
 
       recognizer.onOscillation(function (name, strength) {
@@ -156,16 +145,20 @@
       var lastFrame = 0;
       function step(timestamp) {
         var delta = timestamp - lastFrame;
-        var f1 = Math.sin(Math.PI * timestamp / 100);
-        var f2 = Math.sin(Math.PI * timestamp / 500);
-        var f3 = Math.sin(Math.PI * timestamp / 3000);
-        variables.oscillator.value = f1+f2+f3;
+        // var f1 = Math.sin(Math.PI * timestamp / 10)*0.5;
+        // var f2 = Math.sin(Math.PI * timestamp / 500);
+        // var f3 = Math.sin(Math.PI * timestamp / 3000)*3;
+        // variables.oscillator.value = f1+f2+f3;
         // console.log(
         //   Math.round(variables['orientation.z'].value),
         //   variables['orientation.z'].magnitudeFunction(variables['orientation.z'].value)
         // )
         lastFrame = timestamp;
-        renderer.redraw(delta);
+        if (devMode) {
+          renderer.redraw(delta);
+        } else {
+          renderer.redrawClient(delta);
+        }
         recognizer.frame(delta);
         // console.log("step");
         window.requestAnimationFrame(step);
@@ -181,23 +174,16 @@
 
       if (window.DeviceMotionEvent !== undefined) {
 
-        window.ondevicemotion = function (e) {
-          variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
-          variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
-          variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
-        };
+        // window.ondevicemotion = function (e) {
+        //   variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
+        //   variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
+        //   variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
+        // };
+        
         window.ondeviceorientation = function (e) {
-
           variables['orientation.x'].value = variables['orientation.x'].magnitudeFunction(e.alpha);
           variables['orientation.y'].value = variables['orientation.y'].magnitudeFunction(e.beta);
           variables['orientation.z'].value = variables['orientation.z'].magnitudeFunction(e.gamma);
-          //status.innerHTML = 'vars'+JSON.stringify(e);
-
-          //renderer.redraw();
-
-          //if (!streaming) return false;
-          //if(streaming)
-          //socket.emit('orientation', e);
         };
       } else {
         status.style.display = 'block';
