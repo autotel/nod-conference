@@ -38,16 +38,22 @@ var EmoticonsRenderer = function () {
         var domElName = document.createElement('p');
         domEl.appendChild(domElName);
         domElImg.src = "./res/dlc.bmp";
+        this.visible=false;
         this.appear = function () {
+            if(self.visible) return;
+            console.log("APPEAR");
             emoticonsField.appendChild(domEl);
+            self.visible=true;
         }
         this.disappear = function () {
+            if(!self.visible) return;
             try {
                 emoticonsField.removeChild(domEl);
             } catch (e) {
                 console.log("error removing node for emoticon with unique", self.unique);
                 console.log(e);
             }
+            self.visible=false;
         }
         var restoreTimeout = false;
         var currentGesture = "neutral";
