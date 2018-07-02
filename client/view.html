@@ -17,6 +17,7 @@
             text-align: center;
             font-family: helvetica;
         }
+
         .emoticons-field>div>p {
             margin-top: 0px;
         }
@@ -32,7 +33,8 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="view-EmoticonsRenderer.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    var minStrength=10;
+    document.addEventListener( 'DOMContentLoaded' , function (e) {
         console.log("start");
         socket = io();//'https://192.168.11.3:8014'
         socket.on('connect', function () {
@@ -58,6 +60,10 @@
         socket.on('oscillation', function (data) {
             if (data.unique !== undefined) {
                 console.log('oscillation', data);
+                if(data.strength < minStrength) {
+                    console.log("under stregnth");
+                    return
+                }
                 if (data.gesture !== undefined) {
                     console.log("emoticons.gesture", data.unique, data.gesture);
                     emoticons.gesture(data.unique, data.gesture);
