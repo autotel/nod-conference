@@ -1,1 +1,2 @@
-var server=require('./server');
+var server = require('./server/test.js');
+// var server=require('./server');

@@ -21,7 +21,6 @@ var httpsServer;
 var sockets;
 
 if(serverSettings.use){
-  
   httpsServer = require('https').Server(credentials,app);
   sockets = require('socket.io')(httpsServer);
   
@@ -98,7 +97,7 @@ var clientServer=new(function(){
     console.log("no peripheral server support");
   }
   this.broadcast=function(a,b){
-    if(serverSettings.verbose) console.log("BROADCAST");
+    if(serverSettings.verbose) console.log("broadcast");
     sockets.emit(a,b)
   };
 
