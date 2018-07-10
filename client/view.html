@@ -7,13 +7,17 @@
     <title>Emoticon server</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+        body {
+            background-color: #b9b8b8
+        }
+
         .emoticons-field {
             position: fixed;
             bottom: 0px;
         }
 
         .emoticons-field>div {
-            position:relative;
+            position: relative;
             display: inline-block;
             text-align: center;
             font-family: helvetica;
@@ -21,6 +25,10 @@
 
         .emoticons-field>div>p {
             margin-top: 0px;
+        }
+
+        .emoticons-field>div>img {
+            border-radius: 90px;
         }
     </style>
 </head>
@@ -34,8 +42,8 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="view-EmoticonsRenderer.js"></script>
 <script>
-    var minStrength=10;
-    document.addEventListener( 'DOMContentLoaded' , function (e) {
+    var minStrength = 0;
+    document.addEventListener('DOMContentLoaded', function (e) {
         console.log("start");
         socket = io();//'https://192.168.11.3:8014'
         socket.on('connect', function () {
@@ -61,7 +69,7 @@
         socket.on('oscillation', function (data) {
             if (data.unique !== undefined) {
                 console.log('oscillation', data);
-                if(data.strength < minStrength) {
+                if (data.strength < minStrength) {
                     console.log("under stregnth");
                     return
                 }

@@ -38,6 +38,9 @@
           if (event.name == "orientation.y") {
             event.gesture = "yes";
           }
+          if (event.name == "accel.y"&&event.strength>=10) {
+            event.gesture = "yes";
+          }
           if (event.name == "orientation.x") {
             event.gesture = "no";
           }
@@ -80,9 +83,9 @@
       variables['orientation.y'] = { value: 0, process: {}, colour: "green", magnitudeFunction: angleToMag }
       variables['orientation.z'] = { value: 0, process: {}, colour: "blue", magnitudeFunction: angleToMag }
 
-      // variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
-      // variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
-      // variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
+      variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
+      variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
+      variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
 
       // variables['oscillator'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
 
@@ -130,11 +133,11 @@
 
       if (window.DeviceMotionEvent !== undefined) {
 
-        // window.ondevicemotion = function (e) {
-        //   variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
-        //   variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
-        //   variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
-        // };
+        window.ondevicemotion = function (e) {
+          variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
+          variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
+          variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
+        };
 
         window.ondeviceorientation = function (e) {
           variables['orientation.x'].value = variables['orientation.x'].magnitudeFunction(e.alpha);

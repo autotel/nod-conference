@@ -58,7 +58,7 @@ var EmoticonsRenderer = function () {
         var restoreTimeout = false;
         var currentGesture = "neutral";
         this.represent = function (value) {
-            domEltxt.innerHTML = value;
+            // domEltxt.innerHTML = value;
             if (currentGesture !== value) {
                 domElImg.src = "./res/" + value + ".gif";
                 currentGesture = value
