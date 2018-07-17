@@ -32,7 +32,7 @@
         // var socket = require('socket.io-client')();
         // var io = require('socket.io-client');
         var io = require('./socket.io.js');
-        
+
 
         // console.log(io);
         socket = io(settings.socketServer + ":" + settings.socketPort);
@@ -40,10 +40,23 @@
             console.log("connecting", a);
         });
 
+        var currentFrameId = 0;
+        var current3osc = {};
+
         socket.on('connect', function () {
             console.log("socket connected");
             streaming = true;
-            recognizer.onOscillation(function (event,timestamp) {
+            recognizer.onOscillation(function (event) {
+
+                if (Math.floor(event.time) !== currentFrameId){
+                    currentFrameId=Math.floor(event.time);
+                    current3osc={};
+                }
+
+                current3osc[event.name]=event;
+                console.log("3dosc",current3osc);
+                
+
                 if (event.name == "orientation.y") {
                     event.gesture = "yes";
                 }
@@ -51,12 +64,16 @@
                     event.gesture = "no";
                 }
 
-                if (devMode) console.log('oscillation', event);
+                // if (devMode) console.log('oscillation', event);
                 if (event.gesture !== undefined) {
                     socket.emit('oscillation', event);
                 }
-                event.color=variables[event.name].colour;
+                event.color = variables[event.name].colour;
                 clusterizer.append(event);
+            });
+
+            recognizer.on3dOsc(function(osc3){
+                //now I can select an oscillation according to two or three rotation components and their own variables
             });
         })
         socket.on('error', function (e) {
@@ -68,7 +85,7 @@
         socket.on('connect_timeout ', function (e) {
             console.error("socket error", e);
         })
-        socket.on('update',console.log);
+        socket.on('update', console.log);
 
         // console.log("socket at " + settings.socketServer + ":" + settings.socketPort);
         console.log(socket);
@@ -133,7 +150,7 @@
             console.log(variables);
 
             serialDevices.onData(function (data) {
-                var relvar=variables[data.name]
+                var relvar = variables[data.name]
                 if (relvar) relvar.value = relvar.magnitudeFunction(data.value);
                 // if(data.name=="orientation.x") console.log(relvar.value);
                 // console.log("data");
@@ -185,7 +202,7 @@
                 } else {
                     renderer.redrawClient(delta);
                 }
-                recognizer.frame(delta,timestamp);
+                recognizer.frame(delta, timestamp);
                 // console.log("step");
                 // console.log(timestamp);
                 window.requestAnimationFrame(step);
