@@ -7,7 +7,8 @@ let win
 function createWindow() {
     // Create the browser window.
     var width=400;
-    win = new BrowserWindow({ width: width, height: width * 1.41421356237 })
+    var sq2 = 1.41421356237
+    win = new BrowserWindow({ width: 800, height: width * sq2 })
 
     // and load the index.html of the app.
     win.loadFile('index.html')

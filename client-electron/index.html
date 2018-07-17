@@ -18,10 +18,12 @@
 
     <div id="status"></div>
     <div id="konva"></div>
+    <div id="clusterizer"></div>
     <!-- <script src="https://192.168.100.14:8080/socket.io/socket.io.js"></script> -->
     <script src="../client/phone-renderer.js"></script>
     <script src="../client/phone-recognizer.js"></script>
     <script src="../client/libs/konva.min.js"></script>
+    <script src="./clusterizer.js"></script>
     <script>
         var settings = require('../settings.js').electronClient;
         var serialDevices = require('./serialDevices.js');
@@ -31,19 +33,21 @@
         // var io = require('socket.io-client');
         var io = require('./socket.io.js');
         
+
         // console.log(io);
         socket = io(settings.socketServer + ":" + settings.socketPort);
         socket.on('connecting', function (a) {
             console.log("connecting", a);
         });
+
         socket.on('connect', function () {
             console.log("socket connected");
             streaming = true;
-            recognizer.onOscillation(function (event) {
+            recognizer.onOscillation(function (event,timestamp) {
                 if (event.name == "orientation.y") {
                     event.gesture = "yes";
                 }
-                if (event.name == "orientation.x") {
+                if (event.name == "orientation.z") {
                     event.gesture = "no";
                 }
 
@@ -51,6 +55,8 @@
                 if (event.gesture !== undefined) {
                     socket.emit('oscillation', event);
                 }
+                event.color=variables[event.name].colour;
+                clusterizer.append(event);
             });
         })
         socket.on('error', function (e) {
@@ -69,6 +75,10 @@
         var devMode = true;
         var variables = {}
         document.addEventListener('DOMContentLoaded', function () {
+
+            clusterizer.konvaGraph(Konva);
+
+
             var streaming = false;
             var status = document.getElementById('status');
             var sendingId = document.getElementById('sending-id');
@@ -97,7 +107,8 @@
 
             var angleToMag = function (x) {
                 // http://fooplot.com/
-                return Math.abs(Math.abs((x - 90) / 180) % 1 - 0.5) * 60 - 15
+                // return Math.abs(Math.abs((x - 90) / 180) % 1 - 0.5) * 60 - 15
+                return Math.sin(x * Math.PI / 180) * 60;
             }
             var magToMag = function (val) {
                 return val / 2;
@@ -122,7 +133,9 @@
             console.log(variables);
 
             serialDevices.onData(function (data) {
-                if (variables[data.name]) variables[data.name].value = data.value;
+                var relvar=variables[data.name]
+                if (relvar) relvar.value = relvar.magnitudeFunction(data.value);
+                // if(data.name=="orientation.x") console.log(relvar.value);
                 // console.log("data");
                 // console.log(data);
             });
@@ -172,8 +185,9 @@
                 } else {
                     renderer.redrawClient(delta);
                 }
-                recognizer.frame(delta);
+                recognizer.frame(delta,timestamp);
                 // console.log("step");
+                // console.log(timestamp);
                 window.requestAnimationFrame(step);
             }
 
