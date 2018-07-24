@@ -41,30 +41,56 @@
         });
 
         var currentFrameId = 0;
-        var current3osc = {};
+        var current3osc = [];
 
         socket.on('connect', function () {
             console.log("socket connected");
             streaming = true;
             recognizer.onOscillation(function (event) {
 
-                if (Math.floor(event.time) !== currentFrameId){
-                    currentFrameId=Math.floor(event.time);
-                    current3osc={};
+                if (Math.floor(event.time) !== currentFrameId) {
+                    currentFrameId = Math.floor(event.time);
+                    current3osc = [];
+                }
+                var cancelGesture = false;
+                for (var otherOsc of current3osc) {
+                    if (otherOsc.gesture)
+                        if (otherOsc.strength > event.strength) {
+                            cancelGesture = true;
+                        }
+                }
+                //yes and no should be emitted on frame, after evaluating that in the range no other stronger gesture is detected.
+                if (!cancelGesture) {
+                    if (event.name == "orientation.y") {
+
+                        for (var otherOsc of current3osc) {
+                            if (otherOsc.name == "orientation.x")
+                                if (otherOsc.frequency == event.frequency) {
+                                    
+                                }
+                        }
+
+                        if (event.strength > 12.8 && event.frequency > 1.5
+                            && event.strength < 38.5 && event.frequency < 3.7) {
+                            event.gesture = "yes";
+                            console.log("DEC YES", event.strength);
+                        } else {
+                            console.log("NDEC y", event);
+                        }
+                    }
+
+                    if (event.name == "orientation.x") {
+                        if (event.strength > 13 && event.frequency > 1.4
+                            && event.strength < 79.5 && event.frequency < 4.2) {
+                            event.gesture = "no";
+                            console.log("DEC NO", event.strength);
+                        } else {
+                            console.log("NDEC n", event);
+                        }
+                    }
                 }
 
-                current3osc[event.name]=event;
-                console.log("3dosc",current3osc);
-                
-
-                if (event.name == "orientation.y") {
-                    event.gesture = "yes";
-                }
-                if (event.name == "orientation.z") {
-                    event.gesture = "no";
-                }
-
-                // if (devMode) console.log('oscillation', event);
+                current3osc.push(event);
                 if (event.gesture !== undefined) {
                     socket.emit('oscillation', event);
                 }
@@ -72,9 +98,9 @@
                 clusterizer.append(event);
             });
 
-            recognizer.on3dOsc(function(osc3){
-                //now I can select an oscillation according to two or three rotation components and their own variables
-            });
+            // recognizer.on3dOsc(function(osc3){
+            //     //now I can select an oscillation according to two or three rotation components and their own variables
+            // });
         })
         socket.on('error', function (e) {
             console.error("socket error", e);
@@ -202,7 +228,20 @@
                 } else {
                     renderer.redrawClient(delta);
                 }
-                recognizer.frame(delta, timestamp);
+                var multiOsc=recognizer.frame(delta, timestamp);
+                
+                var comps={
+                    x:false,y:false,z:false
+                }
+                for(var osc of multiOsc){
+                    var comp = osc.name.split(".")[1];
+                    console.log(comp);
+                    comps[comp]=osc;
+                }
+                if(comps.x && comps.y){
+                    console.log("y/n",comps.x.strength>comps.y.strength?"no":"yes");
+                }
+                
                 // console.log("step");
                 // console.log(timestamp);
                 window.requestAnimationFrame(step);

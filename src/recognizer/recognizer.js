@@ -1,5 +1,7 @@
 'use strict';
 var throtling = require('./throtling')
+var frameOscs = [];
+
 var recognizer = new (function () {
   console.log("RECOG");
   var self = this;
@@ -62,7 +64,7 @@ var recognizer = new (function () {
     var self = this;
     this.value = 0;
     this.name = myVar.name;
-    this.treshold = 1;
+    this.treshold = 0.6;
     var lastValue = myVar.value;
     this.frame = function (timeDelta) {
       var crosses = (lastValue * myVar.value) < 0;
@@ -86,7 +88,6 @@ var recognizer = new (function () {
     this.name = myVar.name;
     var zeroCrosses = [];
 
-
     var lowCutFq = 10;
     var hiCutFq = 20;
 
@@ -107,8 +108,7 @@ var recognizer = new (function () {
       // }
     });
 
-    this.frame = function (timeDelta,identifier) {
-      // console.log(identifier);
+    this.frame = function (timeDelta) {
       self.zerox.frame(timeDelta);
       if (zeroCrosses[0] == undefined) return false;
       zeroCrosses[0].time += timeDelta;
@@ -129,7 +129,7 @@ var recognizer = new (function () {
       // console.log("oscs:",zeroCrosses.length);
       // console.log("splice",damt);
       if (damt > 0) zeroCrosses.splice(-damt);
-      if (zeroCrosses.length > 2) {
+      if (zeroCrosses.length >= 3) {
         self.value = slopeAvg * zeroCrosses.length;
         var frequency = zeroCrosses.length / (totalTime / 1000);
         throtledCallback({
@@ -138,7 +138,7 @@ var recognizer = new (function () {
           oscillations: zeroCrosses.length,
           slopeAverage: slopeAvg,
           frequency: frequency,
-          time: identifier,
+          // time: identifier,
         });
       }
     }
@@ -148,31 +148,40 @@ var recognizer = new (function () {
   var vars = [];
   document.addEventListener('DOMContentLoaded', function () {
   });
-  var oscillationCallback = function () { };
+
+  var oscillationCallbacks = [];
 
   this.onOscillation = function (callback) {
-    oscillationCallback = callback;
+    oscillationCallbacks.push(callback);
   }
 
   this.addVar = function (ivar) {
     vars.push(ivar);
+
     if (!ivar.value) ivar.value = 0;
     ivar.process.onOsc = new OnOscillation(ivar,
       function (evt) {
-        // console.log(strength);
-        oscillationCallback(evt);
+        frameOscs.push(evt);
+        for (var cb of oscillationCallbacks) {
+          cb(evt);
+        }
       });
   }
 
+  this.frame = function (timeDelta, id) {
 
+    frameOscs=[];
 
-  this.frame = function (timeDelta,id) {
     for (var a in vars) {
       for (var b in vars[a].process) {
-        vars[a].process[b].frame(timeDelta,id);
+        vars[a].process[b].frame(timeDelta, id);
       }
     }
+
+    return frameOscs;
   }
+
+
   return this;
 })();
 module.exports = recognizer;
