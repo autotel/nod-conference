@@ -35,15 +35,15 @@
       socket.on('connect', function () {
         streaming = true;
         recognizer.onOscillation(function (event) {
-          if (event.name == "orientation.y") {
-            event.gesture = "yes";
-          }
-          if (event.name == "accel.y"&&event.strength>=10) {
-            event.gesture = "yes";
-          }
-          if (event.name == "orientation.x") {
-            event.gesture = "no";
-          }
+          // if (event.name == "orientation.y") {
+          //   event.gesture = "yes";
+          // }
+          // if (event.name == "accel.y"&&event.strength>=10) {
+          //   event.gesture = "yes";
+          // }
+          // if (event.name == "orientation.x") {
+          //   event.gesture = "no";
+          // }
 
           if (devMode) console.log('oscillation', event);
           if (event.gesture !== undefined) {
@@ -83,9 +83,9 @@
       variables['orientation.y'] = { value: 0, process: {}, colour: "green", magnitudeFunction: angleToMag }
       variables['orientation.z'] = { value: 0, process: {}, colour: "blue", magnitudeFunction: angleToMag }
 
-      variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
-      variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
-      variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
+      // variables['accel.x'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
+      // variables['accel.y'] = { value: 0, process: {}, colour: "magenta", magnitudeFunction: magToMag }
+      // variables['accel.z'] = { value: 0, process: {}, colour: "yellow", magnitudeFunction: magToMag }
 
       // variables['oscillator'] = { value: 0, process: {}, colour: "cyan", magnitudeFunction: magToMag }
 
@@ -118,7 +118,29 @@
         } else {
           renderer.redrawClient(delta);
         }
-        recognizer.frame(delta);
+        var multiOsc = recognizer.frame(delta, timestamp);
+
+        var comps = {
+          x: false, y: false, z: false
+        }
+        for (var osc of multiOsc) {
+          var comp = osc.name.split(".")[1];
+          console.log(comp);
+          comps[comp] = osc;
+        }
+        if (comps.x && comps.y) {
+          var event = multiOsc[0];
+          var dif = 5;
+          event.gesture = (comps.x.strength - dif) > comps.y.strength ? "no" : "yes"
+          console.log("y/n", event.gesture, (comps.x.strength - dif) - comps.y.strength);
+          socket.emit('oscillation', event);
+        } else if (comps.x && comps.x.strength > 15) {
+          var event = multiOsc[0];
+          event.gesture = "no"
+          console.log("/n", event.gesture, comps.x.strength);
+
+          socket.emit('oscillation', event);
+        }
         // console.log("step");
         window.requestAnimationFrame(step);
       }
@@ -133,11 +155,11 @@
 
       if (window.DeviceMotionEvent !== undefined) {
 
-        window.ondevicemotion = function (e) {
-          variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
-          variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
-          variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
-        };
+        // window.ondevicemotion = function (e) {
+        //   variables['accel.x'].value = variables['accel.x'].magnitudeFunction(e.accelerationIncludingGravity.x);
+        //   variables['accel.y'].value = variables['accel.y'].magnitudeFunction(e.accelerationIncludingGravity.y);
+        //   variables['accel.z'].value = variables['accel.z'].magnitudeFunction(e.accelerationIncludingGravity.z);
+        // };
 
         window.ondeviceorientation = function (e) {
           variables['orientation.x'].value = variables['orientation.x'].magnitudeFunction(e.alpha);

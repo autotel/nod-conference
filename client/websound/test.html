@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Page Title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <body>
+            <canvas id="canvas" width="300" height="300">
+            An alternative text describing what your canvas displays. 
+            </canvas>    
+        </body>
+    <script>
+        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var analyser = audioCtx.createAnalyser();
+
+var canvas = document.getElementById('canvas');
+var canvasCtx = canvas.getContext('2d');
+canvasCtx.fillStyle = 'green';
+canvasCtx.fillRect(10, 10, 100, 100);
+
+
+analyser.fftSize = 256;
+var bufferLength = analyser.frequencyBinCount;
+console.log(bufferLength);
+var dataArray = new Uint8Array(bufferLength);
+
+canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+function draw() {
+  drawVisual = requestAnimationFrame(draw);
+
+  analyser.getByteFrequencyData(dataArray);
+
+  canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+  canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  var barWidth = (WIDTH / bufferLength) * 2.5;
+  var barHeight;
+  var x = 0;
+
+  for(var i = 0; i < bufferLength; i++) {
+    barHeight = dataArray[i];
+
+    canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+    canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+
+    x += barWidth + 1;
+  }
+};
+
+draw();
+    </script>
+</head>
+</html>

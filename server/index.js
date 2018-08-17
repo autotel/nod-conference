@@ -96,6 +96,11 @@ var clientServer = new (function () {
             if (serverSettings.verbose) console.log('  >>oscillation', data);
             data.unique = tracker.unique;
             io.emit('oscillation', data);
+        }); 
+        socket.on('soundstatus', function (data) {
+            if (serverSettings.verbose) console.log('  >>oscillation', data);
+            data.unique = tracker.unique;
+            io.emit('soundstatus', data);
         });
         socket.on('update', function (data) {
             if (serverSettings.verbose) console.log('<<update', data);

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Web dsp test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+</head>
+
+<script src="../socket.io/socket.io.js"></script>
+<script>
+    var socket = io();
+    var socketReady = false;
+
+    socket.on('connect', function () {
+        socketReady = true;
+        var form=document.createElement("input");
+        form.type="text";
+        form.onsubmit="sendName";
+        console.log("socket connected");
+        
+    });
+
+    var sendName = function (e) {
+        if (!socket) { console.error("socket is", socket); return false };
+
+        form.style.display = 'none';
+        status.style.display = 'block';
+        document.activeElement.blur();
+
+        socket.emit('update', { name: sendingId.value });
+        if (devMode) console.log(sendingId.value);
+        document.getElementById('my-name').innerHTML = sendingId.value;
+        return false;
+    };
+</script>
+
+<body>
+    <div id="konva"></div>
+
+</body>
+<script>
+    window.addEventListener('soundprocessready', function () {
+        // console.log(process);
+        // transients.on('envelope',console.log);
+        transients.on('attack', function () {
+            if (socketReady) {
+                socket.emit("soundstatus", { attack: true });
+            }
+        });
+
+    }, false);
+</script>
+
+
+
+<script src="main.js"></script>
+
+</html>

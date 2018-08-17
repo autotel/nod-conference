@@ -48,52 +48,51 @@
             streaming = true;
             recognizer.onOscillation(function (event) {
 
-                if (Math.floor(event.time) !== currentFrameId) {
-                    currentFrameId = Math.floor(event.time);
-                    current3osc = [];
-                }
-                var cancelGesture = false;
-                for (var otherOsc of current3osc) {
-                    if (otherOsc.gesture)
-                        if (otherOsc.strength > event.strength) {
-                            cancelGesture = true;
-                        }
-                }
-                //yes and no should be emitted on frame, after evaluating that in the range no other stronger gesture is detected.
-                if (!cancelGesture) {
-                    if (event.name == "orientation.y") {
+                // if (Math.floor(event.time) !== currentFrameId) {
+                //     currentFrameId = Math.floor(event.time);
+                //     current3osc = [];
+                // }
+                // var cancelGesture = false;
+                // for (var otherOsc of current3osc) {
+                //     if (otherOsc.gesture)
+                //         if (otherOsc.strength > event.strength) {
+                //             cancelGesture = true;
+                //         }
+                // }
+                // if (!cancelGesture) {
+                //     if (event.name == "orientation.y") {
 
-                        for (var otherOsc of current3osc) {
-                            if (otherOsc.name == "orientation.x")
-                                if (otherOsc.frequency == event.frequency) {
+                //         for (var otherOsc of current3osc) {
+                //             if (otherOsc.name == "orientation.x")
+                //                 if (otherOsc.frequency == event.frequency) {
                                     
-                                }
-                        }
+                //                 }
+                //         }
 
-                        if (event.strength > 12.8 && event.frequency > 1.5
-                            && event.strength < 38.5 && event.frequency < 3.7) {
-                            event.gesture = "yes";
-                            console.log("DEC YES", event.strength);
-                        } else {
-                            console.log("NDEC y", event);
-                        }
-                    }
+                //         if (event.strength > 12.8 && event.frequency > 1.5
+                //             && event.strength < 38.5 && event.frequency < 3.7) {
+                //             event.gesture = "yes";
+                //             console.log("DEC YES", event.strength);
+                //         } else {
+                //             console.log("NDEC y", event);
+                //         }
+                //     }
 
-                    if (event.name == "orientation.x") {
-                        if (event.strength > 13 && event.frequency > 1.4
-                            && event.strength < 79.5 && event.frequency < 4.2) {
-                            event.gesture = "no";
-                            console.log("DEC NO", event.strength);
-                        } else {
-                            console.log("NDEC n", event);
-                        }
-                    }
-                }
+                //     if (event.name == "orientation.x") {
+                //         if (event.strength > 13 && event.frequency > 1.4
+                //             && event.strength < 79.5 && event.frequency < 4.2) {
+                //             event.gesture = "no";
+                //             console.log("DEC NO", event.strength);
+                //         } else {
+                //             console.log("NDEC n", event);
+                //         }
+                //     }
+                // }
 
-                current3osc.push(event);
-                if (event.gesture !== undefined) {
-                    socket.emit('oscillation', event);
-                }
+                // current3osc.push(event);
+                // if (event.gesture !== undefined) {
+                //     socket.emit('oscillation', event);
+                // }
                 event.color = variables[event.name].colour;
                 clusterizer.append(event);
             });
@@ -202,7 +201,7 @@
 
             recognizer.onOscillation(function (name, strength) {
                 console.log('oscillation', { axis: name, strength: strength });
-                console.log("socket not yet connected");
+                // console.log("socket not yet connected");
             });
 
             var lastFrame = 0;
@@ -239,9 +238,18 @@
                     comps[comp]=osc;
                 }
                 if(comps.x && comps.y){
-                    console.log("y/n",comps.x.strength>comps.y.strength?"no":"yes");
+                    var event=multiOsc[0];
+                    var dif=5;
+                    event.gesture= (comps.x.strength - dif) > comps.y.strength ? "no" : "yes"
+                    console.log("y/n",event.gesture,  (comps.x.strength - dif)-comps.y.strength);
+                    socket.emit('oscillation', event);
+                }else if (comps.x && comps.x.strength > 15) {
+                    var event = multiOsc[0];
+                    event.gesture = "no"
+                    console.log("/n", event.gesture, comps.x.strength);
+
+                    socket.emit('oscillation', event);
                 }
-                
                 // console.log("step");
                 // console.log(timestamp);
                 window.requestAnimationFrame(step);

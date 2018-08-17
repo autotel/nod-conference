@@ -79,6 +79,13 @@
                 }
             }
         });
+        socket.on('soundstatus', function (data) {
+            if (data.unique !== undefined) {
+                console.log('soundstatus', data);
+                emoticons.gesture(data.unique, "talk");
+                // emoticons.gesture(data.unique, "talk");
+            }
+        });
     });
 </script>
 
