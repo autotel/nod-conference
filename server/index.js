@@ -5,7 +5,8 @@ var serverSettings = settings.clientServer;
 var express = require('express');
 var app = express();
 var http = require('http');
-var https = require('https');
+if (settings.useHttps)
+    var https = require('https');
 var fs = require('fs');
 var EventEmitter = require('events').EventEmitter;
 var ioServer = require('socket.io');
@@ -45,7 +46,8 @@ var privateKey = fs.readFileSync(serverSettings.keyFile, 'utf8');
 var certificate = fs.readFileSync(serverSettings.certificateFile, 'utf8');
 var credentials = { key: privateKey, cert: certificate };
 
-var httpsServer = https.createServer(credentials, app);
+if (settings.useHttps)
+    var httpsServer = https.createServer(credentials, app);
 
 var io = new ioServer();
 
@@ -53,14 +55,16 @@ httpServer.listen(app.get('http_port'), function () {
     console.log('httpServer listening on port %d', app.get('https_port'));
     ee.emit('ready', 'httpServerReady');
 });
+if (settings.useHttps) {
 
-httpsServer.listen(app.get('https_port'), function () {
-    console.log('httpsServer listening on port %d', app.get('https_port'));
-    ee.emit('ready', 'httpsServerReady');
-});
+    httpsServer.listen(app.get('https_port'), function () {
+        console.log('httpsServer listening on port %d', app.get('https_port'));
+        ee.emit('ready', 'httpsServerReady');
+    });
 
+    io.attach(httpsServer);
+}
 io.attach(httpServer);
-io.attach(httpsServer);
 
 io.on('connection', function (socket) {
     console.log('socket connected: %s', socket.id);
@@ -96,7 +100,7 @@ var clientServer = new (function () {
             if (serverSettings.verbose) console.log('  >>oscillation', data);
             data.unique = tracker.unique;
             io.emit('oscillation', data);
-        }); 
+        });
         socket.on('soundstatus', function (data) {
             if (serverSettings.verbose) console.log('  >>oscillation', data);
             data.unique = tracker.unique;
