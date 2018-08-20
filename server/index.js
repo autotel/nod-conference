@@ -37,8 +37,8 @@ app.get('/', function (req, res) {
     app.use(express.static(clientPath));
     res.sendFile(clientPath + "/view.html");
 });
-app.set('http_port', serverSettings.porthttp || 80);
-app.set('https_port', serverSettings.porthttps || 443);
+app.set('http_port', serverSettings.porthttp);
+app.set('https_port', serverSettings.porthttps);
 
 var httpServer = http.createServer(app);
 
@@ -55,6 +55,7 @@ httpServer.listen(app.get('http_port'), function () {
     console.log('httpServer listening on port %d', app.get('https_port'));
     ee.emit('ready', 'httpServerReady');
 });
+
 if (settings.useHttps) {
 
     httpsServer.listen(app.get('https_port'), function () {

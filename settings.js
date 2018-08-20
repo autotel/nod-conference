@@ -11,8 +11,8 @@ var settings={
     useHttps:false,
     use:true,
     porthttps: 8080,
-    porthttp: 8080,
-    port:80,
+    porthttp: process.env.PORT,
+    port: process.env.PORT,
     keyFile:'./server/sslcert/server.key',
     certificateFile:'./server/sslcert/server.crt',
     verbose:true
