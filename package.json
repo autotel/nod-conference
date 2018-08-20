@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start":"node index",
     "test": "echo \"Error: no test specified\" && exit 1",
     "recognizer-dev": "webpack --watch --mode development ./src/recognizer/recognizer.js --output ./client/phone-recognizer.js",
     "recognizer-build": "webpack --mode production ./src/recognizer/recognizer.js --output ./client/phone-recognizer.js"

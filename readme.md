@@ -1,4 +1,5 @@
 
+A set of apps to detect nod movement in the head from the rotation of an IMU.
 
 # installation of basic requirements
 
