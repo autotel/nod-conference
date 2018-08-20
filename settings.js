@@ -4,13 +4,13 @@ var settings={
     // socketServer:'http://10.100.54.149',
     socketServer: "http://88.112.168.211",
     // socketServer:'http://autotel.ddns.net',
-    socketPort:8081,
+    socketPort:80,
   },
   clientServer:{
     use:true,
     porthttps: 8080,
-    porthttp: 8081,
-    port:8081,
+    porthttp: 80,
+    port:80,
     keyFile:'./server/sslcert/server.key',
     certificateFile:'./server/sslcert/server.crt',
     verbose:true
