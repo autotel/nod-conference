@@ -6,8 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
-    "package": "electron-packager ./ client-electron --platform=darwin --arch=x64",
-    "rebuild": "electron-rebuild"
+    "package": "electron-packager ./ client-electron --platform=win32 --platform=mas --platform=darwin --arch=x64",
+    "rebuild": "electron-rebuild",
+    "dmg": "electron-installer-dmg ./dist/osx64 nodConference"
   },
   "build": {
     "appId": "nod-conference-desktop",

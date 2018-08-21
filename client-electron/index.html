@@ -2,7 +2,7 @@
 
 <head>
     <title>Phone Motion Streamer</title>
-    <style type="text/css" src="../client/phoneapp.css"></style>
+    <style type="text/css" src="./client/phoneapp.css"></style>
 
     <meta charset="utf-8">
     <meta name="viewport" content="minimal-ui,width=device-width, user-scalable=no">
@@ -20,19 +20,18 @@
     <div id="konva"></div>
     <div id="clusterizer"></div>
     <!-- <script src="https://192.168.100.14:8080/socket.io/socket.io.js"></script> -->
-    <script src="../client/phone-renderer.js"></script>
-    <script src="../client/phone-recognizer.js"></script>
-    <script src="../client/libs/konva.min.js"></script>
+    <script src="./client/phone-renderer.js"></script>
+    <script src="./client/phone-recognizer.js"></script>
+    <script src="./client/libs/konva.min.js"></script>
     <script src="./clusterizer.js"></script>
     <script>
-        var settings = require('../settings.js').electronClient;
+        var settings = require('./settings.js').electronClient;
         var serialDevices = require('./serialDevices.js');
         // var socket=require('socket.io-client')(settings.socketServer + ":" + settings.socketPort);
         // var socket=require(settings.socketServer+":"+ settings.socketPort+"/socket.io/socket.io.js")();
         // var socket = require('socket.io-client')();
         // var io = require('socket.io-client');
         var io = require('./socket.io.js');
-
 
         // console.log(io);
         socket = io(settings.socketServer + ":" + settings.socketPort);
