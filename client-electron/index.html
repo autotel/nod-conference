@@ -18,12 +18,12 @@
 
     <div id="status"></div>
     <div id="konva"></div>
-    <div id="clusterizer"></div>
+    <!-- <div id="clusterizer"></div> -->
     <!-- <script src="https://192.168.100.14:8080/socket.io/socket.io.js"></script> -->
     <script src="./client/phone-renderer.js"></script>
     <script src="./client/phone-recognizer.js"></script>
     <script src="./client/libs/konva.min.js"></script>
-    <script src="./clusterizer.js"></script>
+    <!-- <script src="./clusterizer.js"></script> -->
     <script>
         var settings = require('./settings.js').electronClient;
         var serialDevices = require('./serialDevices.js');
@@ -47,58 +47,9 @@
             streaming = true;
             recognizer.onOscillation(function (event) {
 
-                // if (Math.floor(event.time) !== currentFrameId) {
-                //     currentFrameId = Math.floor(event.time);
-                //     current3osc = [];
-                // }
-                // var cancelGesture = false;
-                // for (var otherOsc of current3osc) {
-                //     if (otherOsc.gesture)
-                //         if (otherOsc.strength > event.strength) {
-                //             cancelGesture = true;
-                //         }
-                // }
-                // if (!cancelGesture) {
-                //     if (event.name == "orientation.y") {
-
-                //         for (var otherOsc of current3osc) {
-                //             if (otherOsc.name == "orientation.x")
-                //                 if (otherOsc.frequency == event.frequency) {
-                                    
-                //                 }
-                //         }
-
-                //         if (event.strength > 12.8 && event.frequency > 1.5
-                //             && event.strength < 38.5 && event.frequency < 3.7) {
-                //             event.gesture = "yes";
-                //             console.log("DEC YES", event.strength);
-                //         } else {
-                //             console.log("NDEC y", event);
-                //         }
-                //     }
-
-                //     if (event.name == "orientation.x") {
-                //         if (event.strength > 13 && event.frequency > 1.4
-                //             && event.strength < 79.5 && event.frequency < 4.2) {
-                //             event.gesture = "no";
-                //             console.log("DEC NO", event.strength);
-                //         } else {
-                //             console.log("NDEC n", event);
-                //         }
-                //     }
-                // }
-
-                // current3osc.push(event);
-                // if (event.gesture !== undefined) {
-                //     socket.emit('oscillation', event);
-                // }
                 event.color = variables[event.name].colour;
-                clusterizer.append(event);
+                // clusterizer.append(event);
             });
-
-            // recognizer.on3dOsc(function(osc3){
-            //     //now I can select an oscillation according to two or three rotation components and their own variables
-            // });
         })
         socket.on('error', function (e) {
             console.error("socket error", e);
@@ -117,7 +68,7 @@
         var variables = {}
         document.addEventListener('DOMContentLoaded', function () {
 
-            clusterizer.konvaGraph(Konva);
+            // clusterizer.konvaGraph(Konva);
 
 
             var streaming = false;
@@ -206,6 +157,7 @@
             var lastFrame = 0;
             function step(timestamp) {
                 var delta = timestamp - lastFrame;
+                lastFrame = timestamp;
 
                 if (sendingId.value == "oscillateno" || sendingId.value == "oscillateyes") {
                     var f1 = Math.sin(Math.PI * timestamp / 10) * 0.5;
@@ -220,29 +172,38 @@
                     variables['orientation.y'].value = f1 + f2 + f3;
                 }
 
-                lastFrame = timestamp;
                 if (devMode) {
                     renderer.redraw(delta);
                 } else {
                     renderer.redrawClient(delta);
                 }
-                var multiOsc=recognizer.frame(delta, timestamp);
-                
-                var comps={
-                    x:false,y:false,z:false
+                //recognizer.frame returns an array with objects, one for each axis where oscillations were detected
+                var multiOsc = recognizer.frame(delta, timestamp);
+
+                var comps = {
+                    x: false, y: false, z: false
                 }
-                for(var osc of multiOsc){
+                for (var osc of multiOsc) {
                     var comp = osc.name.split(".")[1];
                     console.log(comp);
-                    comps[comp]=osc;
+                    comps[comp] = osc;
                 }
-                if(comps.x && comps.y){
-                    var event=multiOsc[0];
-                    var dif=5;
-                    event.gesture= (comps.x.strength - dif) > comps.y.strength ? "no" : "yes"
-                    console.log("y/n",event.gesture,  (comps.x.strength - dif)-comps.y.strength);
+
+                //oscillation in the x axis means no, and in the y axis means yes. However, what happens when there is oscillation on both axis?
+
+                if (comps.x && comps.y) {
+                    var event = multiOsc[0];
+                    var dif = 35;//5
+                    event.gesture = (comps.x.strength - dif) > comps.y.strength ? "no" : "yes"
+                    console.log("y/n", event.gesture, (comps.x.strength - dif) - comps.y.strength);
                     socket.emit('oscillation', event);
-                }else if (comps.x && comps.x.strength > 15) {
+                } else if(comps.y) {
+                    var event = multiOsc[0];
+                    var tresh = 9;
+                    event.gesture = "yes"
+                    console.log("yes");
+                    socket.emit('oscillation', event);
+                } else if (comps.x && comps.x.strength > 15) {
                     var event = multiOsc[0];
                     event.gesture = "no"
                     console.log("/n", event.gesture, comps.x.strength);

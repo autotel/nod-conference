@@ -1,3 +1,11 @@
+* upload sound and nodders code to github. Make it a bit more understandable
+* I could try some other approaches to detect/convey the nods if there are obvious ways.
+
+* the smiley animation is to aniumated ant it disallows side of the eye recognition. No movement or slight movement.
+* some nods were not detected. It needst o be more sensitive. there were not fake nods
+* the setup was working
+
+
 
 A set of apps to detect nod movement in the head from the rotation of an IMU.
 
