@@ -1,13 +1,45 @@
-* upload sound and nodders code to github. Make it a bit more understandable
-* I could try some other approaches to detect/convey the nods if there are obvious ways.
+# File structure
 
-* the smiley animation is to aniumated ant it disallows side of the eye recognition. No movement or slight movement.
-* some nods were not detected. It needst o be more sensitive. there were not fake nods
-* the setup was working
+description of the use for each file in the repository.
 
-
-
-A set of apps to detect nod movement in the head from the rotation of an IMU.
+* client: contains different clients meant to be visited by browser using laptop or phone.
+  * libs: javascript external libs, to be loaded using normal http.
+  * res: graphics and other resources for the clients.
+  * websound: contains the client for the sound analyser (work in progress).
+    * index.html: main client.
+    * main.css: styles for webaudio client.
+    * main.js: compiled sound analysis script. The SRC of that script is on a different repository: https://github.com/autotel/webSoundAnalyzer
+  * index.html: contains a small socket test. Currently it is not used.
+  * phone-recognizer.js: compiled code for the phone client. 
+    * The source of this code is located at /src/recognizer
+    * it can be rebuilt by running `npm run recognizer-dev` or `npm run recognizer-build` at the root of the project.
+    * It is designed to take gyroscope data and convert it to gestures by detecting oscillations.
+  * phone-renderer.js: makes a visualization of variables (in this case, the phone gyroscope, but any other numeric variables can be added)
+  * phoneapp.css: styles for the phone client
+  * view-EmoticonsREnderer.js: manages the rendering, appearance and disappearance of the emoticons in the view client.
+  * view.html: Main view client. Where the emoticons appear.
+* client-electron: container for the electron-based desktop app.
+  * client: contains javascript code. These are copies of the ones contained in the `/client ` folder. This copies are so that Electron can find the files.
+    * libs: contains external js libs
+    * phone-recognizer.js: the same as /client/phone-recognizer.js
+    * phone-renderer.js: almost the same as /client/phone-renderer.js
+  * clusterizer.js: a code used to visualize gestures using two coordinates. It is currently not used.
+  * index.html: used as the index by the electron app. Refer to usage of Electron.
+  * index.js: used as the backend of the electron app. Refer to usage of Electron.
+  * SerialDevice.js: wrapper for serial objects (a manager for devices which are connected via serial)
+  * serialDevices.js: finds all serial devices, and creates a SerialDevice object for each. It also maps each piece of data received to a variable such as `variables["orientation.x"]`
+  * socket.io.js: socket.io library
+  * Transceiver.js: module that converts serial communication into numbers. (for example, a four-byte float into int.) Not all the conversions might be working, it needs to be coordinated with the firmware on the headset.
+* server
+  * sslcert: contains self-signed (invalid) ssl certificate. To use a phone's accelerometer or gyroscope data, the url needs to be https; hence the need for an ssl. Being self-signed means that the user gets a security error on their browsers, which is ok for testing purposes.
+  * Binder.js: a set of objects and functions that help to keep track the state of different clients. The use case is the following: if one enters into the view client (where the emoticons appear), the clients that logged in before would not appear: they need to be sent to the new client. This binder keeps track of all the clients and some data related to them, so that they are visible to anyone who logs in later.
+  * index: main server, manages the socket connections and messages among all the clients (phone, electron, view, webaudio). It also serves the files (index.html, view.html, websound, phone.html)
+* src: contains the source of compiled (transpiled) code
+  * recognizer: src of recognizer: the functions that detect gesture events out of movement.
+    * readme.md
+    * recognizer.js: recognizes the gestures by using values. It is based on the detection of an oscillation within a frequency range. This is why it uses low pass and highpass operators. It reduces the amount of events using throttling.
+    * throtling.js: closure to prevent a function from running too often, particularly the oscillation detection event.
+* index.js:  it is there just so that you can start the server running `node index.js`
 
 # installation of basic requirements
 
